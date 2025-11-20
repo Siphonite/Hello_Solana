@@ -55,7 +55,7 @@ pub mod voting_app {
         require!(idx < ballot.options.len(), VotingError::InvalidOptionIndex);
 
         for p in ballot.voters.iter() {
-            require!(p != voter, VotingError::AlreadyVoted);
+            require!(*p != voter, VotingError::AlreadyVoted);
         }
 
         ballot.votes[idx] = ballot.votes[idx]
