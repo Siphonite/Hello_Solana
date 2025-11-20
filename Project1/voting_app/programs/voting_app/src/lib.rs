@@ -2,13 +2,16 @@ use anchor_lang::prelude::*;
 
 declare_id!("nWQ6uXRz9VRLbHwWD2WyaHULWgMrWGLSFi4TuEC3qmX");
 
-const MAX_OPTIONS: usize = 10;   
-const MAX_OPTION_LEN: usize = 32;  
-const MAX_TITLE_LEN: usize = 128;  
+const MAX_OPTIONS: usize = 10;
+const MAX_OPTION_LEN: usize = 32;
+const MAX_TITLE_LEN: usize = 128;
 
-// fill later
-
-const BALLOT_SPACE: usize = 8+ 32+ 4 + MAX_TITLE_LEN + 4+ (MAX_OPTIONS * MAX_OPTION_LEN) + 4 + (MAX_OPTIONS * 8) + 4 + (100*32); 
+const BALLOT_SPACE: usize = 8
+    + 32
+    + 4 + MAX_TITLE_LEN
+    + 4 + (MAX_OPTIONS * MAX_OPTION_LEN)
+    + 4 + (MAX_OPTIONS * 8)
+    + 4 + (100 * 32);
 
 #[program]
 pub mod voting_app {
@@ -20,46 +23,50 @@ pub mod voting_app {
         options: Vec<String>,
     ) -> Result<()> {
         let ballot = &mut ctx.accounts.ballot;
-        
-        require!(options.len()> 0 && options.len() <= MAX_OPTIONS, 
-            VotingError::InvalidOptions); 
 
-        require!(title.len() <= MAX_TITLE_LEN, VotingError::TitleTooLong); 
+        require!(
+            options.len() > 0 && options.len() <= MAX_OPTIONS,
+            VotingError::InvalidOptions
+        );
 
-        // basic validation for optional lengths
+        require!(
+            title.len() <= MAX_TITLE_LEN,
+            VotingError::TitleTooLong
+        );
 
         for opt in &options {
             require!(opt.len() <= MAX_OPTION_LEN, VotingError::OptionTooLong);
-        } 
+        }
 
         ballot.owner = *ctx.accounts.authority.key;
         ballot.title = title;
         ballot.options = options;
-        ballot.votes = vec![0u64; options.len()];
-        ballot.voters = vec![]; // tracks who voted.
+        ballot.votes = vec![0u64; ballot.options.len()];
+        ballot.voters = vec![];
+
         Ok(())
-    } 
+    }
 
-    pub fn vote (ctx: Context<Vote>, option_index: u8) -> Result<()> {
+    pub fn vote(ctx: Context<Vote>, option_index: u8) -> Result<()> {
         let ballot = &mut ctx.accounts.ballot;
-        let voter = ctx.accounts.voter.key; 
+        let voter = ctx.accounts.voter.key();
 
-        // ensure option exists 
-         
         let idx = option_index as usize;
         require!(idx < ballot.options.len(), VotingError::InvalidOptionIndex);
 
-        // ensure that not already voted 
-
-        for p in ballot.voters.iter(){
-            require!(p !=voter, VotingError::AlreadyVoted);
+        for p in ballot.voters.iter() {
+            require!(p != voter, VotingError::AlreadyVoted);
         }
 
-        ballot.votes[idx] ballot.votes[idx].checked_add(1).ok_or(VotingError::VoteOverflow)?;
-        ballot.voters.push(*voter); // add voter to the list
+        ballot.votes[idx] = ballot.votes[idx]
+            .checked_add(1)
+            .ok_or(VotingError::Overflow)?;
+
+        ballot.voters.push(voter);
+
         Ok(())
-    }   
-} 
+    }
+}
 
 #[derive(Accounts)]
 pub struct InitializeBallot<'info> {
@@ -74,17 +81,16 @@ pub struct InitializeBallot<'info> {
 pub struct Vote<'info> {
     #[account(mut)]
     pub ballot: Account<'info, Ballot>,
-    // CHECK: voter just signs, we store their pubkey in the account. 
     pub voter: Signer<'info>,
 }
 
 #[account]
 pub struct Ballot {
-    pub owner: Pubkey, // who created the ballot
-    pub title: String, // title of the ballot
-    pub options: Vec<String>, // options to vote on
-    pub votes: Vec<u64>, // votes for each option
-    pub voters: Vec<Pubkey>, // list of voters who have voted
+    pub owner: Pubkey,
+    pub title: String,
+    pub options: Vec<String>,
+    pub votes: Vec<u64>,
+    pub voters: Vec<Pubkey>,
 }
 
 #[error_code]
