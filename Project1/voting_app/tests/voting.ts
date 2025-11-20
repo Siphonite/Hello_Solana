@@ -1,11 +1,13 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
+import { Program, AnchorProvider } from "@coral-xyz/anchor";
 import { VotingApp } from "../target/types/voting_app";
+import { assert } from "chai";
 
 describe("voting_app", () => {
   anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace.VotingApp as Program<VotingApp>;
+  const provider = anchor.getProvider() as AnchorProvider;
 
   it("Initializes a ballot", async () => {
     const ballot = anchor.web3.Keypair.generate();
@@ -17,8 +19,7 @@ describe("voting_app", () => {
       .initializeBallot(title, options)
       .accounts({
         ballot: ballot.publicKey,
-        authority: program.provider.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
+        authority: provider.wallet.publicKey,
       })
       .signers([ballot])
       .rpc();
@@ -27,8 +28,8 @@ describe("voting_app", () => {
 
     console.log("Ballot:", ballotAccount);
 
-    if (ballotAccount.title !== title) throw new Error("Title mismatch");
-    if (ballotAccount.options.length !== 3) throw new Error("Options mismatch");
+    assert.strictEqual(ballotAccount.title, title, "Title mismatch");
+    assert.strictEqual(ballotAccount.options.length, 3, "Options mismatch");
   });
 
   it("Casts a vote", async () => {
@@ -42,8 +43,7 @@ describe("voting_app", () => {
       .initializeBallot(title, options)
       .accounts({
         ballot: ballot.publicKey,
-        authority: program.provider.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
+        authority: provider.wallet.publicKey,
       })
       .signers([ballot])
       .rpc();
@@ -53,7 +53,7 @@ describe("voting_app", () => {
       .vote(0)
       .accounts({
         ballot: ballot.publicKey,
-        voter: program.provider.publicKey,
+        voter: provider.wallet.publicKey,
       })
       .rpc();
 
@@ -61,6 +61,7 @@ describe("voting_app", () => {
 
     console.log("Votes:", ballotAccount.votes);
 
-    if (ballotAccount.votes[0] !== 1) throw new Error("Vote did not register!");
+    // votes[0] is a BN (BigNumber), so convert to number for comparison
+    assert.strictEqual(ballotAccount.votes[0].toNumber(), 1, "Vote did not register!");
   });
 });
