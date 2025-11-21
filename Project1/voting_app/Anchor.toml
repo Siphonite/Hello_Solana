@@ -6,6 +6,9 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
+voting_app = "nWQ6uXRz9VRLbHwWD2WyaHULWgMrWGLSFi4TuEC3qmX" 
+
+[programs.devnet]
 voting_app = "nWQ6uXRz9VRLbHwWD2WyaHULWgMrWGLSFi4TuEC3qmX"
 
 [registry]
