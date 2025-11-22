@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { Program, AnchorProvider, web3, BN } from '@coral-xyz/anchor';
+import { Program, AnchorProvider, web3 } from '@coral-xyz/anchor';
 import idl from '../idl/voting_app.json';
 
 const PROGRAM_ID = new web3.PublicKey('nWQ6uXRz9VRLbHwWD2WyaHULWgMrWGLSFi4TuEC3qmX');
@@ -32,7 +32,7 @@ function CreateBallot() {
   };
 
   const createBallot = async () => {
-    if (!wallet.publicKey) {
+    if (!wallet.connected || !wallet.publicKey) {
       setStatus('Please connect your wallet first!');
       return;
     }
@@ -46,26 +46,39 @@ function CreateBallot() {
     setStatus('Creating ballot...');
 
     try {
-      const provider = new AnchorProvider(connection, wallet, {});
+      // Create provider with proper wallet adapter
+      const provider = new AnchorProvider(
+        connection,
+        wallet,
+        { commitment: 'confirmed' }
+      );
+
       const program = new Program(idl, PROGRAM_ID, provider);
 
       const ballot = web3.Keypair.generate();
 
-      await program.methods
+      const tx = await program.methods
         .initializeBallot(title, options)
         .accounts({
           ballot: ballot.publicKey,
           authority: wallet.publicKey,
+          systemProgram: web3.SystemProgram.programId,
         })
         .signers([ballot])
         .rpc();
 
-      setStatus(`✅ Ballot created successfully! Address: ${ballot.publicKey.toString()}`);
+      setStatus(`Ballot created successfully! 
+      
+Ballot Address: ${ballot.publicKey.toString()}
+Transaction: ${tx}
+
+Save this ballot address to vote on it later!`);
+      
       setTitle('');
       setOptions(['', '']);
     } catch (error) {
       console.error('Error creating ballot:', error);
-      setStatus(`❌ Error: ${error.message}`);
+      setStatus(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -74,6 +87,12 @@ function CreateBallot() {
   return (
     <div className="create-ballot">
       <h2>Create New Ballot</h2>
+
+      {!wallet.connected && (
+        <div className="warning-message">
+           Please connect your wallet using the button in the header to create a ballot.
+        </div>
+      )}
       
       <div className="form-group">
         <label>Ballot Title:</label>
@@ -83,6 +102,7 @@ function CreateBallot() {
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g., What's your favorite color?"
           maxLength={128}
+          disabled={!wallet.connected}
         />
       </div>
 
@@ -96,16 +116,25 @@ function CreateBallot() {
               onChange={(e) => updateOption(index, e.target.value)}
               placeholder={`Option ${index + 1}`}
               maxLength={32}
+              disabled={!wallet.connected}
             />
             {options.length > 2 && (
-              <button onClick={() => removeOption(index)} className="remove-btn">
+              <button 
+                onClick={() => removeOption(index)} 
+                className="remove-btn"
+                disabled={!wallet.connected}
+              >
                 ✕
               </button>
             )}
           </div>
         ))}
         {options.length < 10 && (
-          <button onClick={addOption} className="add-btn">
+          <button 
+            onClick={addOption} 
+            className="add-btn"
+            disabled={!wallet.connected}
+          >
             + Add Option
           </button>
         )}
@@ -113,7 +142,7 @@ function CreateBallot() {
 
       <button 
         onClick={createBallot} 
-        disabled={loading || !wallet.publicKey}
+        disabled={loading || !wallet.connected}
         className="create-btn"
       >
         {loading ? 'Creating...' : 'Create Ballot'}
