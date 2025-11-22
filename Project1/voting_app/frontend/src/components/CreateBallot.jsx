@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useConnection, useWallet, useAnchorWallet } from '@solana/wallet-adapter-react';
 import { Program, AnchorProvider, web3 } from '@coral-xyz/anchor';
 import idl from '../idl/voting_app.json';
 
@@ -8,6 +8,7 @@ const PROGRAM_ID = new web3.PublicKey('nWQ6uXRz9VRLbHwWD2WyaHULWgMrWGLSFi4TuEC3q
 function CreateBallot() {
   const { connection } = useConnection();
   const wallet = useWallet();
+  const anchorWallet = useAnchorWallet();
   const [title, setTitle] = useState('');
   const [options, setOptions] = useState(['', '']);
   const [loading, setLoading] = useState(false);
@@ -32,13 +33,13 @@ function CreateBallot() {
   };
 
   const createBallot = async () => {
-    if (!wallet.connected || !wallet.publicKey) {
-      setStatus('Please connect your wallet first!');
+    if (!wallet.connected || !anchorWallet) {
+      setStatus('ERROR: Please connect your wallet first!');
       return;
     }
 
     if (!title.trim() || options.some(opt => !opt.trim())) {
-      setStatus('Please fill in all fields!');
+      setStatus('ERROR: Please fill in all fields!');
       return;
     }
 
@@ -46,39 +47,45 @@ function CreateBallot() {
     setStatus('Creating ballot...');
 
     try {
-      // Create provider with proper wallet adapter
       const provider = new AnchorProvider(
         connection,
-        wallet,
-        { commitment: 'confirmed' }
+        anchorWallet,
+        AnchorProvider.defaultOptions()
       );
 
       const program = new Program(idl, PROGRAM_ID, provider);
 
       const ballot = web3.Keypair.generate();
 
+      console.log('Creating ballot with:', {
+        title,
+        options,
+        ballotAddress: ballot.publicKey.toString(),
+        authority: anchorWallet.publicKey.toString()
+      });
+
       const tx = await program.methods
         .initializeBallot(title, options)
         .accounts({
           ballot: ballot.publicKey,
-          authority: wallet.publicKey,
+          authority: anchorWallet.publicKey,
           systemProgram: web3.SystemProgram.programId,
         })
         .signers([ballot])
         .rpc();
 
-      setStatus(`Ballot created successfully! 
+      setStatus(`SUCCESS: Ballot created successfully! 
       
 Ballot Address: ${ballot.publicKey.toString()}
 Transaction: ${tx}
 
-Save this ballot address to vote on it later!`);
+Copy the ballot address above to vote on it!`);
       
       setTitle('');
       setOptions(['', '']);
     } catch (error) {
-      console.error('Error creating ballot:', error);
-      setStatus(`Error: ${error.message}`);
+      console.error('Full error:', error);
+      setStatus(`ERROR: ${error.message || 'Failed to create ballot'}`);
     } finally {
       setLoading(false);
     }
@@ -90,7 +97,7 @@ Save this ballot address to vote on it later!`);
 
       {!wallet.connected && (
         <div className="warning-message">
-           Please connect your wallet using the button in the header to create a ballot.
+          WARNING: Please connect your wallet using the button in the header to create a ballot.
         </div>
       )}
       
@@ -124,7 +131,7 @@ Save this ballot address to vote on it later!`);
                 className="remove-btn"
                 disabled={!wallet.connected}
               >
-                ✕
+                X
               </button>
             )}
           </div>
