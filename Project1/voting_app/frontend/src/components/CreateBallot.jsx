@@ -35,7 +35,7 @@ function CreateBallot() {
   const createBallot = async () => {
     console.log("IDL Content:", idl);
     console.log("Program ID:", PROGRAM_ID.toString());
-    
+
     if (!wallet.connected || !anchorWallet) {
       setStatus('ERROR: Please connect your wallet first!');
       return;
@@ -56,7 +56,7 @@ function CreateBallot() {
         AnchorProvider.defaultOptions()
       );
 
-      const program = new Program(idl, PROGRAM_ID, provider);
+      const program = new Program(idl.default || idl, PROGRAM_ID, provider);
 
       const ballot = web3.Keypair.generate();
 
