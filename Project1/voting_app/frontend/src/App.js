@@ -12,7 +12,7 @@ function App() {
     <WalletContextProvider>
       <div className="App">
         <header className="App-header">
-          <h1>🗳️ Solana Voting App</h1>
+          <h1> Solana Voting App</h1>
           <WalletMultiButton />
         </header>
 
