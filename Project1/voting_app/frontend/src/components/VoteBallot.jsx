@@ -3,8 +3,6 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { Program, AnchorProvider, web3 } from '@coral-xyz/anchor';
 import idl from '../idl/voting_app.json';
 
-const PROGRAM_ID = new web3.PublicKey('nWQ6uXRz9VRLbHwWD2WyaHULWgMrWGLSFi4TuEC3qmX');
-
 function VoteBallot() {
   const { connection } = useConnection();
   const wallet = useWallet();
@@ -25,7 +23,7 @@ function VoteBallot() {
 
     try {
       const provider = new AnchorProvider(connection, wallet, {});
-      const program = new Program(idl, PROGRAM_ID, provider);
+      const program = new Program(idl, provider);
 
       const ballotPubkey = new web3.PublicKey(ballotAddress);
       const ballot = await program.account.ballot.fetch(ballotPubkey);
@@ -58,7 +56,7 @@ function VoteBallot() {
 
     try {
       const provider = new AnchorProvider(connection, wallet, {});
-      const program = new Program(idl, PROGRAM_ID, provider);
+      const program = new Program(idl, provider);
 
       const ballotPubkey = new web3.PublicKey(ballotAddress);
 
