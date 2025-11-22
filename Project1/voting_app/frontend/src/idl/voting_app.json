@@ -1,38 +1,68 @@
 {
+  "accounts": [
+    {
+      "discriminator": [
+        3,
+        232,
+        121,
+        204,
+        232,
+        137,
+        138,
+        164
+      ],
+      "name": "Ballot"
+    }
+  ],
   "address": "nWQ6uXRz9VRLbHwWD2WyaHULWgMrWGLSFi4TuEC3qmX",
-  "metadata": {
-    "name": "voting_app",
-    "version": "0.1.0",
-    "spec": "0.1.0",
-    "description": "Created with Anchor"
-  },
+  "errors": [
+    {
+      "code": 6000,
+      "msg": "Too many options or none provided",
+      "name": "InvalidOptions"
+    },
+    {
+      "code": 6001,
+      "msg": "Option string too long",
+      "name": "OptionTooLong"
+    },
+    {
+      "code": 6002,
+      "msg": "Title too long",
+      "name": "TitleTooLong"
+    },
+    {
+      "code": 6003,
+      "msg": "Invalid option index",
+      "name": "InvalidOptionIndex"
+    },
+    {
+      "code": 6004,
+      "msg": "This wallet already voted",
+      "name": "AlreadyVoted"
+    },
+    {
+      "code": 6005,
+      "msg": "Overflow occurred",
+      "name": "Overflow"
+    }
+  ],
   "instructions": [
     {
-      "name": "initialize_ballot",
-      "discriminator": [
-        47,
-        140,
-        132,
-        69,
-        184,
-        201,
-        73,
-        0
-      ],
       "accounts": [
         {
           "name": "ballot",
-          "writable": true,
-          "signer": true
+          "signer": true,
+          "writable": true
         },
         {
           "name": "authority",
-          "writable": true,
-          "signer": true
+          "signer": true,
+          "writable": true
         },
         {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
+          "address": "11111111111111111111111111111111",
+          "name": "system_program"
         }
       ],
       "args": [
@@ -46,20 +76,20 @@
             "vec": "string"
           }
         }
-      ]
+      ],
+      "discriminator": [
+        47,
+        140,
+        132,
+        69,
+        184,
+        201,
+        73,
+        0
+      ],
+      "name": "initialize_ballot"
     },
     {
-      "name": "vote",
-      "discriminator": [
-        227,
-        110,
-        155,
-        23,
-        136,
-        126,
-        172,
-        25
-      ],
       "accounts": [
         {
           "name": "ballot",
@@ -75,61 +105,30 @@
           "name": "option_index",
           "type": "u8"
         }
-      ]
-    }
-  ],
-  "accounts": [
-    {
-      "name": "Ballot",
+      ],
       "discriminator": [
-        3,
-        232,
-        121,
-        204,
-        232,
-        137,
-        138,
-        164
-      ]
+        227,
+        110,
+        155,
+        23,
+        136,
+        126,
+        172,
+        25
+      ],
+      "name": "vote"
     }
   ],
-  "errors": [
-    {
-      "code": 6000,
-      "name": "InvalidOptions",
-      "msg": "Too many options or none provided"
-    },
-    {
-      "code": 6001,
-      "name": "OptionTooLong",
-      "msg": "Option string too long"
-    },
-    {
-      "code": 6002,
-      "name": "TitleTooLong",
-      "msg": "Title too long"
-    },
-    {
-      "code": 6003,
-      "name": "InvalidOptionIndex",
-      "msg": "Invalid option index"
-    },
-    {
-      "code": 6004,
-      "name": "AlreadyVoted",
-      "msg": "This wallet already voted"
-    },
-    {
-      "code": 6005,
-      "name": "Overflow",
-      "msg": "Overflow occurred"
-    }
-  ],
+  "metadata": {
+    "description": "Created with Anchor",
+    "name": "voting_app",
+    "spec": "0.1.0",
+    "version": "0.1.0"
+  },
   "types": [
     {
       "name": "Ballot",
       "type": {
-        "kind": "struct",
         "fields": [
           {
             "name": "owner",
@@ -157,7 +156,8 @@
               "vec": "pubkey"
             }
           }
-        ]
+        ],
+        "kind": "struct"
       }
     }
   ]

@@ -3,8 +3,6 @@ import { useConnection, useWallet, useAnchorWallet } from '@solana/wallet-adapte
 import { Program, AnchorProvider, web3 } from '@coral-xyz/anchor';
 import idl from '../idl/voting_app.json';
 
-const PROGRAM_ID = new web3.PublicKey('nWQ6uXRz9VRLbHwWD2WyaHULWgMrWGLSFi4TuEC3qmX');
-
 function CreateBallot() {
   const { connection } = useConnection();
   const wallet = useWallet();
@@ -33,9 +31,6 @@ function CreateBallot() {
   };
 
   const createBallot = async () => {
-    console.log("IDL Content:", idl);
-    console.log("Program ID:", PROGRAM_ID.toString());
-
     if (!wallet.connected || !anchorWallet) {
       setStatus('ERROR: Please connect your wallet first!');
       return;
@@ -56,7 +51,8 @@ function CreateBallot() {
         AnchorProvider.defaultOptions()
       );
 
-      const program = new Program(idl.default || idl, PROGRAM_ID, provider);
+      // Cast the IDL to the correct type
+      const program = new Program(idl, provider);
 
       const ballot = web3.Keypair.generate();
 
