@@ -33,6 +33,9 @@ function CreateBallot() {
   };
 
   const createBallot = async () => {
+    console.log("IDL Content:", idl);
+    console.log("Program ID:", PROGRAM_ID.toString());
+    
     if (!wallet.connected || !anchorWallet) {
       setStatus('ERROR: Please connect your wallet first!');
       return;
